@@ -1,12 +1,14 @@
-VERSION ?= 0.11
+VERSION ?= 20.04
+BASE_IMAGE ?= ubuntu
 ifdef BASE_IMAGE
-	BUILD_ARG = --build-arg BASE_IMAGE=$(BASE_IMAGE)
-	ifndef NAME
-		NAME = phusion/baseimage-$(subst :,-,${BASE_IMAGE})
-	endif
-else
-	NAME ?= phusion/baseimage
+	BUILD_ARG = --build-arg BASE_IMAGE=$(BASE_IMAGE):$(VERSION)
+#	ifndef NAME
+#		NAME = docker.patrickdk.com/ubuntubase-$(subst :,-,${BASE_IMAGE})
+#	endif
 endif
+#else
+	NAME ?= docker.patrickdk.com/ubuntubase
+#endif
 ifdef TAG_ARCH
 	# VERSION_ARG = $(VERSION)-$(subst /,-,$(subst :,-,${BASE_IMAGE}))-$(TAG_ARCH)
 	VERSION_ARG = $(VERSION)-$(TAG_ARCH)
@@ -23,20 +25,25 @@ VERSION_ARG ?= $(VERSION)
 all: build
 
 build:
-	./build.sh
-	docker build --no-cache -t $(NAME):$(VERSION_ARG) $(BUILD_ARG) --build-arg QEMU_ARCH=$(QEMU_ARCH) --platform $(PLATFORM) --rm image
+	docker build -t $(NAME):$(VERSION_ARG) $(BUILD_ARG) --rm image
 
-build_multiarch:
+build-multiarch:
 	env NAME=$(NAME) VERSION=$(VERSION_ARG) ./build-multiarch.sh
 
 test:
 	env NAME=$(NAME) VERSION=$(VERSION_ARG) ./test/runner.sh
 
-tag_latest:
+tag-latest:
 	docker tag $(NAME):$(VERSION_ARG) $(NAME):$(LATEST_VERSION)
 
-tag_multiarch_latest:
+tag-multiarch-latest:
 	env NAME=$(NAME) VERSION=$(VERSION) TAG_LATEST=true ./build-multiarch.sh
+
+publish:
+	docker push $(NAME):$(VERSION_ARG)
+
+publish-latest:
+	docker push $(NAME):$(LATEST_VERSION)
 
 release: test
 	@if ! docker images $(NAME) | awk '{ print $$2 }' | grep -q -F $(VERSION_ARG); then echo "$(NAME) version $(VERSION_ARG) is not yet built. Please run 'make build'"; false; fi

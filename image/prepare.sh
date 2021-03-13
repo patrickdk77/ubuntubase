@@ -10,6 +10,31 @@ export INITRD=no
 mkdir -p /etc/container_environment
 echo -n no > /etc/container_environment/INITRD
 
+## Keep apt clean and disable man pages and documentation for packages
+apt-get clean
+
+#printf 'Dir::Cache "";
+#Dir::Cache::archives "";
+#' > /etc/apt/apt.conf.d/02nocache
+echo 'DPkg::Post-Invoke {"/bin/rm -f /var/cache/apt/archives/*.deb || true";};' > /etc/apt/apt.conf.d/clean
+
+printf 'Acquire::http::Proxy "http://cache.patrickdk.com:3142/";
+' >> /etc/apt/apt.conf
+
+printf '# /etc/dpkg/dpkg.cfg.d/01_nodoc
+# Delete locales
+#path-exclude=/usr/share/locale/*
+
+# Delete man pages
+path-exclude=/usr/share/man/*
+
+# Delete docs
+path-exclude=/usr/share/doc/*
+#path-include=/usr/share/doc/*/copyright
+' > /etc/dpkg/dpkg.cfg.d/01_nodoc
+
+rm -rf /usr/share/doc/ /usr/share/man/
+
 ## Enable Ubuntu Universe, Multiverse, and deb-src for main.
 sed -i 's/^#\s*\(deb.*main restricted\)$/\1/g' /etc/apt/sources.list
 sed -i 's/^#\s*\(deb.*universe\)$/\1/g' /etc/apt/sources.list
