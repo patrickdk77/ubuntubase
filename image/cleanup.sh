@@ -5,7 +5,7 @@ set -x
 
 #apt-get purge os-prober
 #apt-get clean
-find /bd_build/ -not \( -name 'bd_build' -or -name 'buildconfig' -or -name 'cleanup.sh' \) -delete
+#find /bd_build/ -not \( -name 'bd_build' -or -name 'buildconfig' -or -name 'cleanup.sh' \) -delete
 rm -rf /tmp/* /var/tmp/* /usr/share/GeoIP/*
 rm -rf /var/lib/apt/lists/*
 

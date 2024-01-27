@@ -8,6 +8,7 @@ ifdef BASE_IMAGE
 endif
 #else
 	NAME ?= docker.patrickdk.com/ubuntubase
+	DOCKERNAME ?= patrickdk/ubuntubase
 #endif
 ifdef TAG_ARCH
 	# VERSION_ARG = $(VERSION)-$(subst /,-,$(subst :,-,${BASE_IMAGE}))-$(TAG_ARCH)
@@ -22,33 +23,44 @@ VERSION_ARG ?= $(VERSION)
 
 .PHONY: all build test tag_latest release ssh
 
-all: build
+all: build-multiarch
 
 build:
-	docker build -t $(NAME):$(VERSION_ARG) $(BUILD_ARG) --rm image
+	docker build --pull -t $(NAME):$(VERSION_ARG) $(BUILD_ARG) --rm image
+
+build-nc:
+	docker build --no-cache --pull -t $(NAME):$(VERSION_ARG) $(BUILD_ARG) --rm image
 
 build-multiarch:
-	env NAME=$(NAME) VERSION=$(VERSION_ARG) ./build-multiarch.sh
+#	env NAME=$(NAME) VERSION=$(VERSION_ARG) ./build-multiarch.sh
+	docker buildx build --pull --push --platform linux/amd64,linux/arm64 -t $(NAME):$(VERSION_ARG) -t $(NAME):latest $(BUILD_ARG) image
 
 test:
 	env NAME=$(NAME) VERSION=$(VERSION_ARG) ./test/runner.sh
 
 tag-latest:
 	docker tag $(NAME):$(VERSION_ARG) $(NAME):$(LATEST_VERSION)
+	docker tag $(NAME):$(VERSION_ARG) $(DOCKERNAME):$(LATEST_VERSION)
 
 tag-multiarch-latest:
 	env NAME=$(NAME) VERSION=$(VERSION) TAG_LATEST=true ./build-multiarch.sh
 
 publish:
 	docker push $(NAME):$(VERSION_ARG)
+	docker tag $(NAME):$(VERSION_ARG) $(DOCKERNAME):$(VERSION_ARG)
+	docker push $(DOCKERNAME):$(VERSION_ARG)
 
 publish-latest:
 	docker push $(NAME):$(LATEST_VERSION)
+	docker push $(DOCKERNAME):$(LATEST_VERSION)
 
-release: test
-	@if ! docker images $(NAME) | awk '{ print $$2 }' | grep -q -F $(VERSION_ARG); then echo "$(NAME) version $(VERSION_ARG) is not yet built. Please run 'make build'"; false; fi
-	docker push $(NAME)
-	@echo "*** Don't forget to create a tag by creating an official GitHub release."
+#release: build-nc tag-latest publish-latest
+release: build-multiarch
+
+#release: test
+#	@if ! docker images $(NAME) | awk '{ print $$2 }' | grep -q -F $(VERSION_ARG); then echo "$(NAME) version $(VERSION_ARG) is not yet built. Please run 'make build'"; false; fi
+#	docker push $(NAME)
+#	@echo "*** Don't forget to create a tag by creating an official GitHub release."
 
 ssh: SSH_COMMAND?=
 ssh:

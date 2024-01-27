@@ -2,9 +2,10 @@ ARG BASE_IMAGE=ubuntu:20.04
 FROM $BASE_IMAGE
 MAINTAINER Phusion <info@phusion.nl>
 
-COPY . /bd_build
+#COPY . /bd_build
 
-RUN /bd_build/prepare.sh && \
+RUN --mount=type=bind,source=.,target=/bd_build \
+        /bd_build/prepare.sh && \
 	/bd_build/system_services.sh && \
 	/bd_build/utilities.sh && \
 	/bd_build/cleanup.sh
