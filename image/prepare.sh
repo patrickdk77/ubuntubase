@@ -18,8 +18,8 @@ apt-get clean
 #' > /etc/apt/apt.conf.d/02nocache
 echo 'DPkg::Post-Invoke {"/bin/rm -f /var/cache/apt/archives/*.deb || true";};' > /etc/apt/apt.conf.d/clean
 
-printf 'Acquire::http::Proxy "http://cache.patrickdk.com:3142/";
-' >> /etc/apt/apt.conf
+#printf 'Acquire::http::Proxy "http://cache.patrickdk.com:3142/";
+#' >> /etc/apt/apt.conf
 
 printf '# /etc/dpkg/dpkg.cfg.d/01_nodoc
 # Delete locales

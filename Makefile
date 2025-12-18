@@ -1,4 +1,4 @@
-VERSION ?= 20.04
+VERSION ?= 24.04
 BASE_IMAGE ?= ubuntu
 ifdef BASE_IMAGE
 	BUILD_ARG = --build-arg BASE_IMAGE=$(BASE_IMAGE):$(VERSION)
@@ -33,7 +33,7 @@ build-nc:
 
 build-multiarch:
 #	env NAME=$(NAME) VERSION=$(VERSION_ARG) ./build-multiarch.sh
-	docker buildx build --pull --push --platform linux/amd64,linux/arm64 -t $(NAME):$(VERSION_ARG) -t $(NAME):latest $(BUILD_ARG) image
+	docker buildx build --pull --push --platform linux/amd64,linux/arm64 -t $(NAME):$(VERSION_ARG) -t $(NAME):latest -t $(DOCKERNAME):$(VERSION_ARG) -t $(DOCKERNAME):latest $(BUILD_ARG) image
 
 test:
 	env NAME=$(NAME) VERSION=$(VERSION_ARG) ./test/runner.sh
